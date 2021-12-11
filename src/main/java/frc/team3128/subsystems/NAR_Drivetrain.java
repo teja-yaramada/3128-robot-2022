@@ -17,12 +17,14 @@ import frc.team3128.Robot;
 import frc.team3128.common.NAR_EMotor;
 import frc.team3128.common.Simulable;
 import frc.team3128.hardware.NAR_CANSparkMax;
-import frc.team3128.hardware.NAR_Motor;
+import frc.team3128.hardware.NAR_MotorController;
 import frc.team3128.hardware.NAR_TalonFX;
+import frc.team3128.hardware.NAR_MotorController.MotorConstants;
 import net.thefletcher.revrobotics.enums.MotorType;
 
-import static frc.team3128.hardware.NAR_Motor.MotorControllerType;
+import static frc.team3128.hardware.NAR_MotorController.MotorControllerType;
 
+// TODO: Make new SimSubsystem class
 public class NAR_Drivetrain extends SubsystemBase implements Simulable{
 
     // Initialize the generic motors
@@ -43,20 +45,42 @@ public class NAR_Drivetrain extends SubsystemBase implements Simulable{
 
     public NAR_Drivetrain(){
 
-        // TODO: Initialize motors here from parameters
-        leftLeader = (NAR_TalonFX) NAR_Motor.create(Constants.DriveConstants.DRIVE_MOTOR_LEFT_LEADER_ID, MotorControllerType.TALON_FX);
-        rightLeader = (NAR_TalonFX) NAR_Motor.create(Constants.DriveConstants.DRIVE_MOTOR_RIGHT_LEADER_ID, MotorControllerType.TALON_FX);
-        leftFollower = (NAR_TalonFX) NAR_Motor.create(Constants.DriveConstants.DRIVE_MOTOR_LEFT_FOLLOWER_ID, MotorControllerType.TALON_FX);
-        rightFollower = (NAR_TalonFX) NAR_Motor.create(Constants.DriveConstants.DRIVE_MOTOR_RIGHT_FOLLOWER_ID, MotorControllerType.TALON_FX);
+        construct();
 
-        // Not sure what the deal is here
+        robotDrive = new DifferentialDrive(leftLeader.getMotorController(), rightLeader.getMotorController());
+
+        odometry = new DifferentialDriveOdometry(Rotation2d.fromDegrees(getHeading()));
+        field = new Field2d();
+
+        SmartDashboard.putData("Field", field);
+
+        resetEncoders();
+    }
+
+    @Override
+    public void constructReal() {
+        // TODO: Initialize motors here from parameters
+        leftLeader = (NAR_TalonFX) NAR_MotorController.create(Constants.DriveConstants.DRIVE_MOTOR_LEFT_LEADER_ID, 
+                                                                MotorControllerType.TALON_FX,
+                                                                MotorConstants.Vex775Pro);
+        rightLeader = (NAR_TalonFX) NAR_MotorController.create(Constants.DriveConstants.DRIVE_MOTOR_RIGHT_LEADER_ID,
+                                                                MotorControllerType.TALON_FX,
+                                                                MotorConstants.Vex775Pro);
+        leftFollower = (NAR_TalonFX) NAR_MotorController.create(Constants.DriveConstants.DRIVE_MOTOR_LEFT_FOLLOWER_ID, 
+                                                                MotorControllerType.TALON_FX,
+                                                                MotorConstants.Vex775Pro);
+        rightFollower = (NAR_TalonFX) NAR_MotorController.create(Constants.DriveConstants.DRIVE_MOTOR_RIGHT_FOLLOWER_ID, 
+                                                                MotorControllerType.TALON_FX,
+                                                                MotorConstants.Vex775Pro);
+
         leftFollower.follow(leftLeader);
         //leftFollower.setInverted(InvertType.FollowMaster);
         rightFollower.follow(rightLeader);
         //rightFollower.setInverted(InvertType.FollowMaster);
+    }
 
-        robotDrive = new DifferentialDrive(leftLeader.getMotorController(), rightLeader.getMotorController());
-
+    @Override
+    public void constructFake() {
         // if(Robot.isSimulation()){
         //     robotDriveSim =
         //     new DifferentialDrivetrainSim(
@@ -67,13 +91,6 @@ public class NAR_Drivetrain extends SubsystemBase implements Simulable{
         //         Constants.DriveConstants.WHEEL_RADIUS_METERS, 
         //         null/*VecBuilder.fill(0, 0, 0.0001, 0.1, 0.1, 0.005, 0.005)*/);
         // }
-
-        odometry = new DifferentialDriveOdometry(Rotation2d.fromDegrees(getHeading()));
-        field = new Field2d();
-
-        SmartDashboard.putData("Field", field);
-
-        resetEncoders();
     }
 
     public static synchronized NAR_Drivetrain getInstance() {
@@ -90,29 +107,7 @@ public class NAR_Drivetrain extends SubsystemBase implements Simulable{
     }
 
     public void simulationPeriodic() {
-        
-        // Set motor voltage inputs
-        robotDriveSim.setInputs(
-            -leftLeader.getMotorController().getMotorOutputVoltage(),
-            rightLeader.getMotorController().getMotorOutputVoltage()
-        );
-
-        // Update sim environment
-        robotDriveSim.update(0.02);
-
-        // Store simulated motor states
-        leftLeader.setQuadSimPosition(robotDriveSim.getLeftPositionMeters() / Constants.DriveConstants.ENCODER_DISTANCE_PER_MARK);
-        leftLeader.setQuadSimVelocity(robotDriveSim.getLeftVelocityMetersPerSecond()/(Constants.DriveConstants.ENCODER_DISTANCE_PER_MARK * 10));
-        rightLeader.setQuadSimPosition(robotDriveSim.getRightPositionMeters() / Constants.DriveConstants.ENCODER_DISTANCE_PER_MARK);
-        rightLeader.setQuadSimVelocity(robotDriveSim.getRightVelocityMetersPerSecond()/(Constants.DriveConstants.ENCODER_DISTANCE_PER_MARK * 10));
-
-        SmartDashboard.putNumber("Left Speed", leftLeader.getEncoderVelocity());
-        SmartDashboard.putNumber("Left Desired Speed", robotDriveSim.getLeftVelocityMetersPerSecond() / (Constants.DriveConstants.ENCODER_DISTANCE_PER_MARK * 10));
-        
-        // TODO: Abstractify gyro
-        int dev = SimDeviceDataJNI.getSimDeviceHandle("navX-Sensor[0]");
-        SimDouble angle = new SimDouble(SimDeviceDataJNI.getSimValueHandle(dev, "Yaw"));
-        angle.set(-robotDriveSim.getHeading().getDegrees());
+        updateSimulation(0.02);
     }
         
     public double getHeading() {
@@ -132,7 +127,7 @@ public class NAR_Drivetrain extends SubsystemBase implements Simulable{
     }
 
     public void arcadeDrive(double x, double y) {
-        robotDrive.arcadeDrive(x,y);
+        robotDrive.arcadeDrive(x,y, false);
     }
 
     public void resetEncoders() {
@@ -142,6 +137,34 @@ public class NAR_Drivetrain extends SubsystemBase implements Simulable{
 
     public void stop() {
         robotDrive.stopMotor();
+    }
+
+    @Override
+    public void updateSimulation(double timeStep) {
+        // // Set motor voltage inputs
+        // robotDriveSim.setInputs(
+        //     -leftLeader.getMotorController().getMotorOutputVoltage(),
+        //     rightLeader.getMotorController().getMotorOutputVoltage()
+        // );
+
+        // // Update sim environment
+        // robotDriveSim.update(timeStep);
+
+        // // Store simulated motor states
+        // leftLeader.setQuadSimPosition(robotDriveSim.getLeftPositionMeters() / Constants.DriveConstants.ENCODER_DISTANCE_PER_MARK);
+        // leftLeader.setQuadSimVelocity(robotDriveSim.getLeftVelocityMetersPerSecond()/(Constants.DriveConstants.ENCODER_DISTANCE_PER_MARK * 10));
+        // rightLeader.setQuadSimPosition(robotDriveSim.getRightPositionMeters() / Constants.DriveConstants.ENCODER_DISTANCE_PER_MARK);
+        // rightLeader.setQuadSimVelocity(robotDriveSim.getRightVelocityMetersPerSecond()/(Constants.DriveConstants.ENCODER_DISTANCE_PER_MARK * 10));
+
+
+
+        SmartDashboard.putNumber("Left Speed", leftLeader.getEncoderVelocity());
+        SmartDashboard.putNumber("Left Desired Speed", robotDriveSim.getLeftVelocityMetersPerSecond() / (Constants.DriveConstants.ENCODER_DISTANCE_PER_MARK * 10));
+        
+        // TODO: Abstractify gyro
+        int dev = SimDeviceDataJNI.getSimDeviceHandle("navX-Sensor[0]");
+        SimDouble angle = new SimDouble(SimDeviceDataJNI.getSimValueHandle(dev, "Yaw"));
+        angle.set(-robotDriveSim.getHeading().getDegrees());
     }
 }
 

@@ -1,6 +1,7 @@
 package frc.team3128.hardware;
 
 import edu.wpi.first.hal.SimDevice;
+import edu.wpi.first.hal.SimDeviceJNI;
 import edu.wpi.first.hal.SimDouble;
 import edu.wpi.first.hal.SimDevice.Direction;
 import edu.wpi.first.wpilibj.SpeedController;
@@ -10,10 +11,10 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 
 import edu.wpi.first.wpilibj.SpeedController;
 
-public abstract class NAR_Motor<T extends SpeedController> implements Simulable {
+public abstract class NAR_MotorController<T extends SpeedController> implements Simulable {
 
     // Condensed the contant-storing functionality of this class to an enum
-    public static enum MotorType{
+    public static enum MotorConstants{
 
         Vex775Pro(18730, 0.7, 134, 0.71);
 
@@ -22,7 +23,7 @@ public abstract class NAR_Motor<T extends SpeedController> implements Simulable 
         private double stallCurrentAmps;
         private double stallTorqueNM;
 
-        MotorType(double freeSpeedRPM, double freeCurrentAmps, double stallCurrentAmps, double stallTorqueNM){
+        MotorConstants(double freeSpeedRPM, double freeCurrentAmps, double stallCurrentAmps, double stallTorqueNM){
             this.freeSpeedRPM = freeSpeedRPM;
             this.freeCurrentAmps = freeCurrentAmps;
             this.stallCurrentAmps = stallCurrentAmps;
@@ -50,13 +51,13 @@ public abstract class NAR_Motor<T extends SpeedController> implements Simulable 
         TALON_FX, TALON_SRX, VICTOR_SPX;
     }
 
-    protected NAR_Motor(int deviceNumber) {
+    protected NAR_MotorController(int deviceNumber) {
         this.deviceNumber = deviceNumber;
         construct();
     }
 
-    public static NAR_Motor create(int deviceNumber, MotorControllerType motorType) {
-        NAR_Motor result;
+    public static NAR_MotorController create(int deviceNumber, MotorControllerType motorType, MotorConstants physConstants) {
+        NAR_MotorController result;
         switch(motorType) {
             case TALON_FX:
                 result = new NAR_TalonFX(deviceNumber);
@@ -72,6 +73,7 @@ public abstract class NAR_Motor<T extends SpeedController> implements Simulable 
         }
 
         result.construct();
+        result.setMotorType(physConstants);
         return result;
     }
 
@@ -79,13 +81,17 @@ public abstract class NAR_Motor<T extends SpeedController> implements Simulable 
     protected double encoderRes;
     protected double moi;
 
-    protected MotorType type;
+    protected MotorConstants type;
     protected int deviceNumber;
     protected T motorController;
     protected SimDevice simEncoder;
     protected SimDouble simPos;
     protected SimDouble simVel;
     protected SimDouble simLoad;
+
+    private void setMotorType(MotorConstants motor){
+        type = motor;
+    }
 
     /**
      * Simulates physics for an individual motor assuming perfect conditions
@@ -103,7 +109,8 @@ public abstract class NAR_Motor<T extends SpeedController> implements Simulable 
 
     @Override
     public void constructFake(){
-        simEncoder = SimDevice.create(motorController.getClass().getSimpleName()+"["+deviceNumber+"] simEncoder", deviceNumber);
+        SimDeviceJNI.freeSimDevice(deviceNumber);
+        simEncoder = SimDevice.create("SimEncoder["+deviceNumber+"]", deviceNumber);
         simPos = simEncoder.createDouble("Pos", Direction.kBidir, 0);
         simVel = simEncoder.createDouble("Vel", Direction.kBidir, 0);
         simLoad = simEncoder.createDouble("Load", Direction.kBidir, 0);
@@ -176,6 +183,7 @@ public abstract class NAR_Motor<T extends SpeedController> implements Simulable 
         BRAKE, COAST;
     }
     public abstract void setNeutralMode(NAR_NeutralMode mode);
+    public abstract void follow(NAR_MotorController<T> motor);
     public abstract double getSetpoint();
     public abstract double getEncoderPosition();
     public abstract double getEncoderVelocity();

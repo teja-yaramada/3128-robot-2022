@@ -13,7 +13,10 @@ import edu.wpi.first.wpilibj.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.system.plant.LinearSystemId;
 import frc.team3128.Robot;
 import frc.team3128.common.NAR_PIDSubsystem;
+import frc.team3128.hardware.NAR_MotorController;
 import frc.team3128.hardware.NAR_TalonSRX;
+import frc.team3128.hardware.NAR_MotorController.MotorConstants;
+import frc.team3128.hardware.NAR_MotorController.MotorControllerType;
 
 public class Sidekick extends NAR_PIDSubsystem {
 
@@ -34,10 +37,9 @@ public class Sidekick extends NAR_PIDSubsystem {
     public static Sidekick instance;
     
     // motors
-    public static NAR_TalonSRX m_sidekick; 
+    public static NAR_TalonSRX m_sidekick;
 
-    // simulated motors
-    public TalonSRXSimCollection m_sidekickSim;
+    // sim environment
     public FlywheelSim m_sidekickShooterSim;
 
     // sidekick state
@@ -79,23 +81,24 @@ public class Sidekick extends NAR_PIDSubsystem {
      * Configures the motors (regular+simulation) 
      */
     private void configMotors() {
-        m_sidekick = new NAR_TalonSRX(Constants.SidekickConstants.SIDEKICK_ID);
-        m_sidekick.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0,
-                Constants.SidekickConstants.CAN_TIMEOUT);
-        m_sidekick.setInverted(true);
-        m_sidekick.setSensorPhase(true);
+        m_sidekick = (NAR_TalonSRX) NAR_MotorController.create(Constants.SidekickConstants.SIDEKICK_ID,
+                                                        MotorControllerType.TALON_SRX,
+                                                        MotorConstants.Vex775Pro);
+        // m_sidekick.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0,
+        //         Constants.SidekickConstants.CAN_TIMEOUT);
+        // m_sidekick.setInverted(true);
+        // m_sidekick.setSensorPhase(true);
 
-        if (!Robot.isReal()) {
-            m_sidekickSim = new TalonSRXSimCollection(m_sidekick);
-            m_sidekickShooterSim = new FlywheelSim(
-                LinearSystemId.identifyVelocitySystem( // plant
-                    0, //kV
-                    0 //kA
-                ), 
-                DCMotor.getVex775Pro(1), // gearbox (1 Vex775 motor)
-                1/3 //gearing
-            );
-        }
+        // if (!Robot.isReal()) {
+        //     m_sidekickShooterSim = new FlywheelSim(
+        //         LinearSystemId.identifyVelocitySystem( // plant
+        //             0, //kV
+        //             0 //kA
+        //         ), 
+        //         DCMotor.getVex775Pro(1), // gearbox (1 Vex775 motor)
+        //         1/3 //gearing
+        //     );
+        // }
     }
 
     /**
@@ -143,7 +146,7 @@ public class Sidekick extends NAR_PIDSubsystem {
      */
     @Override
     protected double getMeasurement() {
-        return m_sidekick.getSelectedSensorVelocity() * Constants.ConversionConstants.SIDEKICK_ENCODER_TO_RPM;
+        return m_sidekick.getEncoderVelocity() * Constants.ConversionConstants.SIDEKICK_ENCODER_TO_RPM;
     }
 
     /**
@@ -175,11 +178,10 @@ public class Sidekick extends NAR_PIDSubsystem {
 
     @Override
     public void simulationPeriodic() {
-        m_sidekickShooterSim.setInputVoltage(m_sidekick.getMotorOutputVoltage());
+        m_sidekickShooterSim.setInputVoltage(m_sidekick.getMotorController().getMotorOutputVoltage());
         m_sidekickShooterSim.update(0.02);
-        m_sidekickSim.setQuadratureVelocity((int) (m_sidekickShooterSim.getAngularVelocityRadPerSec()*0.0254)); // TEMP RADIUS TO GET IT TO WORK
 
-        SmartDashboard.putNumber("Speed", m_sidekick.getSelectedSensorVelocity());
+        SmartDashboard.putNumber("Speed", m_sidekick.getEncoderVelocity());
         SmartDashboard.putNumber("Expected Speed", m_sidekickShooterSim.getAngularVelocityRadPerSec());
     }
 }

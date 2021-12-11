@@ -5,9 +5,9 @@ import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 
 import edu.wpi.first.hal.SimDevice;
-import frc.team3128.hardware.NAR_Motor;
+import frc.team3128.hardware.NAR_MotorController;
 
-public class NAR_TalonFX extends NAR_Motor<WPI_TalonFX>{
+public class NAR_TalonFX extends NAR_MotorController<WPI_TalonFX>{
 
   //Lazy Logic Variables
   protected double prevValue = 0;
@@ -79,5 +79,10 @@ public class NAR_TalonFX extends NAR_Motor<WPI_TalonFX>{
 			motorController.setSelectedSensorPosition(pos);
 		else
 			simPos.set(pos);
+	}
+
+	@Override
+	public void follow(NAR_MotorController<WPI_TalonFX> motor) {
+		motorController.follow(motor.getMotorController());
 	}
 }

@@ -8,10 +8,11 @@ import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import frc.team3128.Robot;
-import frc.team3128.hardware.NAR_Motor;
+import frc.team3128.hardware.NAR_MotorController;
 import frc.team3128.hardware.NAR_TalonSRX;
 import frc.team3128.hardware.NAR_VictorSPX;
-import frc.team3128.hardware.NAR_Motor.MotorControllerType;
+import frc.team3128.hardware.NAR_MotorController.MotorConstants;
+import frc.team3128.hardware.NAR_MotorController.MotorControllerType;
 
 
 public class Intake implements Subsystem {
@@ -23,7 +24,8 @@ public class Intake implements Subsystem {
     private static Intake instance;
 
     //motors
-    private NAR_Motor m_arm_motor, m_brush_motor_1, m_brush_motor_2, m_intake_motor;
+    private NAR_TalonSRX m_arm_motor;
+    private NAR_VictorSPX m_brush_motor_1, m_brush_motor_2, m_intake_motor;
 
     private DigitalInput m_limitSwitchTop, m_limitSwitchBottom;
 
@@ -44,10 +46,18 @@ public class Intake implements Subsystem {
     }
 
     private void configMotors() {
-        m_arm_motor = NAR_Motor.create(Constants.IntakeConstants.ARM_MOTOR_ID, MotorControllerType.TALON_SRX);
-        m_brush_motor_1 = NAR_Motor.create(Constants.IntakeConstants.ARM_MOTOR_ID, MotorControllerType.VICTOR_SPX);
-        m_brush_motor_2 = NAR_Motor.create(Constants.IntakeConstants.BRUSH_MOTOR_2_ID, MotorControllerType.VICTOR_SPX);
-        m_intake_motor = NAR_Motor.create(Constants.IntakeConstants.INTAKE_MOTOR_ID, MotorControllerType.VICTOR_SPX);
+        m_arm_motor = (NAR_TalonSRX) NAR_MotorController.create(Constants.IntakeConstants.ARM_MOTOR_ID, 
+                                                        MotorControllerType.TALON_SRX,
+                                                        MotorConstants.Vex775Pro);
+        m_brush_motor_1 = (NAR_VictorSPX) NAR_MotorController.create(Constants.IntakeConstants.ARM_MOTOR_ID, 
+                                                        MotorControllerType.VICTOR_SPX,
+                                                        MotorConstants.Vex775Pro);
+        m_brush_motor_2 = (NAR_VictorSPX) NAR_MotorController.create(Constants.IntakeConstants.BRUSH_MOTOR_2_ID, 
+                                                        MotorControllerType.VICTOR_SPX,
+                                                        MotorConstants.Vex775Pro);
+        m_intake_motor = (NAR_VictorSPX) NAR_MotorController.create(Constants.IntakeConstants.INTAKE_MOTOR_ID, 
+                                                        MotorControllerType.VICTOR_SPX,
+                                                        MotorConstants.Vex775Pro);
 
         // TODO: What 
         m_arm_motor.setNeutralMode(Constants.IntakeConstants.ARM_NEUTRAL_MODE);

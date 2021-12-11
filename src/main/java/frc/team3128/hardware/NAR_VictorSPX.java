@@ -4,9 +4,9 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 
-import frc.team3128.hardware.NAR_Motor;
+import frc.team3128.hardware.NAR_MotorController;
 
-public class NAR_VictorSPX extends NAR_Motor<WPI_VictorSPX> {
+public class NAR_VictorSPX extends NAR_MotorController<WPI_VictorSPX> {
 
   //Lazy Logic Variables
   protected double prevValue = 0;
@@ -83,5 +83,10 @@ public class NAR_VictorSPX extends NAR_Motor<WPI_VictorSPX> {
 			return;
 		else
 			simPos.set(pos);
+	}
+
+	@Override
+	public void follow(NAR_MotorController<WPI_VictorSPX> motor) {
+		motorController.follow(motor.getMotorController());
 	}
 }

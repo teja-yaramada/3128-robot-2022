@@ -16,6 +16,8 @@ import frc.team3128.Robot;
 import frc.team3128.common.NAR_EMotor;
 import frc.team3128.common.NAR_PIDSubsystem;
 import frc.team3128.hardware.*;
+import frc.team3128.hardware.NAR_MotorController.MotorConstants;
+import frc.team3128.hardware.NAR_MotorController.MotorControllerType;
 
 public class Shooter extends NAR_PIDSubsystem {
 
@@ -42,8 +44,12 @@ public class Shooter extends NAR_PIDSubsystem {
     private static Shooter instance;
 
     //Motors
-    private NAR_TalonFX m_leftShooter = new NAR_TalonFX(Constants.ShooterConstants.LEFT_SHOOTER_ID);
-    private NAR_TalonFX m_rightShooter = new NAR_TalonFX(Constants.ShooterConstants.RIGHT_SHOOTER_ID);
+    private NAR_TalonFX m_leftShooter = (NAR_TalonFX) NAR_MotorController.create(Constants.ShooterConstants.LEFT_SHOOTER_ID, 
+                                                                                MotorControllerType.TALON_FX,
+                                                                                MotorConstants.Vex775Pro);
+    private NAR_TalonFX m_rightShooter = (NAR_TalonFX) NAR_MotorController.create(Constants.ShooterConstants.RIGHT_SHOOTER_ID, 
+                                                                                MotorControllerType.TALON_FX,
+                                                                                MotorConstants.Vex775Pro);
 
     //Simulated Shooter
     private FlywheelSim m_shooterSim;
@@ -133,7 +139,7 @@ public class Shooter extends NAR_PIDSubsystem {
 
     @Override
     protected double getMeasurement() {
-        return m_leftShooter.getSelectedSensorVelocity() * Constants.ConversionConstants.ENCODER_TO_RPM;
+        return m_leftShooter.getEncoderVelocity() * Constants.ConversionConstants.ENCODER_TO_RPM;
     }
 
     /**
@@ -169,16 +175,15 @@ public class Shooter extends NAR_PIDSubsystem {
 
     @Override
     public void simulationPeriodic() {
-        m_shooterSim.setInput(
-            m_leftShooter.getMotorOutputVoltage()
-            //m_rightShooter.getMotorOutputVoltage()
-        );  
-        m_shooterSim.update(0.02);    
+        // m_shooterSim.setInput(
+        //     m_leftShooter.getMotorController().getMotorOutputVoltage()  
+        //     //m_rightShooter.getMotorOutputVoltage()
+        // );  
+        // m_shooterSim.update(0.02);    
         
-        m_leftShooter.setQuadSimVelocity(m_shooterSim.getAngularVelocityRadPerSec() * Constants.ShooterConstants.SHOOTER_RADIUS_METERS);
-        //m_rightShooter.setQuadSimVelocity(m_shooterSim.getAngularVelocityRadPerSec() * Constants.ShooterConstants.SHOOTER_RADIUS_METERS);
+        // m_leftShooter.setQuadSimVelocity(m_shooterSim.getAngularVelocityRadPerSec() * Constants.ShooterConstants.SHOOTER_RADIUS_METERS);
+        // m_rightShooter.setQuadSimVelocity(m_shooterSim.getAngularVelocityRadPerSec() * Constants.ShooterConstants.SHOOTER_RADIUS_METERS);
 
-        SmartDashboard.putNumber("test", m_leftShooter.getMotorOutputVoltage()); 
         SmartDashboard.putNumber("Expected Shooter Speed (rpm)", m_shooterSim.getAngularVelocityRadPerSec()); //* 60 / (2*Math.PI) );
         SmartDashboard.putString("pogger", String.valueOf(m_shooterSim.getAngularVelocityRadPerSec()));
     }

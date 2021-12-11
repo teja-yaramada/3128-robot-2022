@@ -8,6 +8,8 @@ import edu.wpi.first.wpilibj.system.plant.LinearSystemId;
 import edu.wpi.first.wpiutil.math.numbers.N1;
 import edu.wpi.first.wpiutil.math.numbers.N2;
 
+import static frc.team3128.hardware.NAR_MotorController.NAR_NeutralMode;
+
 public class Constants {
 
     public static class ShooterConstants {
@@ -110,7 +112,7 @@ public class Constants {
         public static final double ARM_MOTOR_POWER = 0.42;
 
         public static final double ARM_MOTOR_POWER_AUTO = 0.07;
-        public static final NeutralMode ARM_NEUTRAL_MODE = NeutralMode.Brake;
+        public static final NAR_NeutralMode ARM_NEUTRAL_MODE = NAR_NeutralMode.BRAKE;
     }
 
     public static class HopperConstants {
