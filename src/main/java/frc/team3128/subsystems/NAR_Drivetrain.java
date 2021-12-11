@@ -15,29 +15,20 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.team3128.Robot;
 import frc.team3128.common.NAR_EMotor;
+import frc.team3128.common.Simulable;
 import frc.team3128.hardware.NAR_CANSparkMax;
+import frc.team3128.hardware.NAR_Motor;
 import frc.team3128.hardware.NAR_TalonFX;
 import net.thefletcher.revrobotics.enums.MotorType;
 
-public class NAR_Drivetrain extends SubsystemBase {
+import static frc.team3128.hardware.NAR_Motor.MotorControllerType;
+
+public class NAR_Drivetrain extends SubsystemBase implements Simulable{
 
     // Initialize the generic motors
     // TODO: Weird difference in speed for different motors
 
-    private NAR_EMotor leftLeader = new NAR_TalonFX(Constants.DriveConstants.DRIVE_MOTOR_LEFT_LEADER_ID);
-    private NAR_EMotor rightLeader = new NAR_TalonFX(Constants.DriveConstants.DRIVE_MOTOR_RIGHT_LEADER_ID);
-    private NAR_EMotor leftFollower = new NAR_TalonFX(Constants.DriveConstants.DRIVE_MOTOR_LEFT_FOLLOWER_ID);
-    private NAR_EMotor rightFollower = new NAR_TalonFX(Constants.DriveConstants.DRIVE_MOTOR_RIGHT_FOLLOWER_ID);
-
-    // private NAR_EMotor leftLeader = new NAR_TalonSRX(0);
-    // private NAR_EMotor rightLeader = new NAR_TalonSRX(1);
-    // private NAR_EMotor leftFollower = new NAR_TalonSRX(2);
-    // private NAR_EMotor rightFollower = new NAR_TalonSRX(3);
-    
-    // private NAR_EMotor leftLeader = new NAR_CANSparkMax(0, MotorType.kBrushed);
-    // private NAR_EMotor rightLeader = new NAR_CANSparkMax(1, MotorType.kBrushed);
-    // private NAR_EMotor leftFollower = new NAR_CANSparkMax(2, MotorType.kBrushed);
-    // private NAR_EMotor rightFollower = new NAR_CANSparkMax(3, MotorType.kBrushed);
+    private NAR_TalonFX leftLeader, rightLeader, leftFollower, rightFollower;
 
     public static NAR_Drivetrain instance;
 
@@ -53,6 +44,10 @@ public class NAR_Drivetrain extends SubsystemBase {
     public NAR_Drivetrain(){
 
         // TODO: Initialize motors here from parameters
+        leftLeader = (NAR_TalonFX) NAR_Motor.create(Constants.DriveConstants.DRIVE_MOTOR_LEFT_LEADER_ID, MotorControllerType.TALON_FX);
+        rightLeader = (NAR_TalonFX) NAR_Motor.create(Constants.DriveConstants.DRIVE_MOTOR_RIGHT_LEADER_ID, MotorControllerType.TALON_FX);
+        leftFollower = (NAR_TalonFX) NAR_Motor.create(Constants.DriveConstants.DRIVE_MOTOR_LEFT_FOLLOWER_ID, MotorControllerType.TALON_FX);
+        rightFollower = (NAR_TalonFX) NAR_Motor.create(Constants.DriveConstants.DRIVE_MOTOR_RIGHT_FOLLOWER_ID, MotorControllerType.TALON_FX);
 
         // Not sure what the deal is here
         leftFollower.follow(leftLeader);
@@ -60,18 +55,18 @@ public class NAR_Drivetrain extends SubsystemBase {
         rightFollower.follow(rightLeader);
         //rightFollower.setInverted(InvertType.FollowMaster);
 
-        robotDrive = new DifferentialDrive(leftLeader.getMotor(), rightLeader.getMotor());
+        robotDrive = new DifferentialDrive(leftLeader.getMotorController(), rightLeader.getMotorController());
 
-        if(Robot.isSimulation()){
-            robotDriveSim =
-            new DifferentialDrivetrainSim(
-                Constants.DriveConstants.DRIVE_CHAR,
-                Constants.DriveConstants.GEARBOX,
-                Constants.DriveConstants.DRIVE_GEARING,
-                Constants.DriveConstants.TRACK_WIDTH_METERS,
-                Constants.DriveConstants.WHEEL_RADIUS_METERS, 
-                null/*VecBuilder.fill(0, 0, 0.0001, 0.1, 0.1, 0.005, 0.005)*/);
-        }
+        // if(Robot.isSimulation()){
+        //     robotDriveSim =
+        //     new DifferentialDrivetrainSim(
+        //         Constants.DriveConstants.DRIVE_CHAR,
+        //         Constants.DriveConstants.GEARBOX,
+        //         Constants.DriveConstants.DRIVE_GEARING,
+        //         Constants.DriveConstants.TRACK_WIDTH_METERS,
+        //         Constants.DriveConstants.WHEEL_RADIUS_METERS, 
+        //         null/*VecBuilder.fill(0, 0, 0.0001, 0.1, 0.1, 0.005, 0.005)*/);
+        // }
 
         odometry = new DifferentialDriveOdometry(Rotation2d.fromDegrees(getHeading()));
         field = new Field2d();
@@ -98,8 +93,8 @@ public class NAR_Drivetrain extends SubsystemBase {
         
         // Set motor voltage inputs
         robotDriveSim.setInputs(
-            -leftLeader.getMotorOutputVoltage(),
-            rightLeader.getMotorOutputVoltage()
+            -leftLeader.getMotorController().getMotorOutputVoltage(),
+            rightLeader.getMotorController().getMotorOutputVoltage()
         );
 
         // Update sim environment
@@ -111,7 +106,7 @@ public class NAR_Drivetrain extends SubsystemBase {
         rightLeader.setQuadSimPosition(robotDriveSim.getRightPositionMeters() / Constants.DriveConstants.ENCODER_DISTANCE_PER_MARK);
         rightLeader.setQuadSimVelocity(robotDriveSim.getRightVelocityMetersPerSecond()/(Constants.DriveConstants.ENCODER_DISTANCE_PER_MARK * 10));
 
-        SmartDashboard.putNumber("Left Speed", leftLeader.getSelectedSensorVelocity());
+        SmartDashboard.putNumber("Left Speed", leftLeader.getEncoderVelocity());
         SmartDashboard.putNumber("Left Desired Speed", robotDriveSim.getLeftVelocityMetersPerSecond() / (Constants.DriveConstants.ENCODER_DISTANCE_PER_MARK * 10));
         
         // TODO: Abstractify gyro
@@ -129,11 +124,11 @@ public class NAR_Drivetrain extends SubsystemBase {
     }
 
     public double getLeftEncoderDistance() {
-        return leftLeader.getSelectedSensorPosition() * Constants.DriveConstants.ENCODER_DISTANCE_PER_MARK;
+        return leftLeader.getEncoderPosition() * Constants.DriveConstants.ENCODER_DISTANCE_PER_MARK;
     }
 
     public double getRightEncoderDistance() {
-        return rightLeader.getSelectedSensorPosition() * Constants.DriveConstants.ENCODER_DISTANCE_PER_MARK;
+        return rightLeader.getEncoderPosition() * Constants.DriveConstants.ENCODER_DISTANCE_PER_MARK;
     }
 
     public void arcadeDrive(double x, double y) {

@@ -7,14 +7,16 @@ import com.ctre.phoenix.motorcontrol.TalonSRXSimCollection;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import frc.team3128.hardware.NAR_CANSparkMax;
+import frc.team3128.hardware.NAR_Motor;
 import frc.team3128.hardware.NAR_TalonSRX;
+import frc.team3128.hardware.NAR_Motor.MotorControllerType;
 import net.thefletcher.revrobotics.enums.MotorType;
 
 public class Hopper implements Subsystem {
 
     private static Hopper instance;
 
-    private NAR_TalonSRX m_hopper_1;
+    private NAR_Motor m_hopper_1;
     private NAR_CANSparkMax m_hopper_2;
 
     private DigitalInput BOTTOM_SENSOR, TOP_SENSOR;
@@ -34,7 +36,7 @@ public class Hopper implements Subsystem {
     }
 
     private void configMotors() {
-        m_hopper_1 = new NAR_TalonSRX(Constants.HopperConstants.HOPPER_MOTOR_1_ID);
+        m_hopper_1 = NAR_Motor.create(Constants.HopperConstants.HOPPER_MOTOR_1_ID, MotorControllerType.TALON_SRX);
         m_hopper_2 = new NAR_CANSparkMax(Constants.HopperConstants.HOPPER_MOTOR_2_ID, MotorType.kBrushless);
     }
 

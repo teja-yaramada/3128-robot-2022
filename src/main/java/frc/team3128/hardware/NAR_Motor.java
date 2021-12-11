@@ -10,10 +10,10 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 
 import edu.wpi.first.wpilibj.SpeedController;
 
-public abstract class NAR_Motor<T extends SpeedController> extends Simulable {
+public abstract class NAR_Motor<T extends SpeedController> implements Simulable {
 
     // Condensed the contant-storing functionality of this class to an enum
-    public static enum MotorConstants{
+    public static enum MotorType{
 
         Vex775Pro(18730, 0.7, 134, 0.71);
 
@@ -22,7 +22,7 @@ public abstract class NAR_Motor<T extends SpeedController> extends Simulable {
         private double stallCurrentAmps;
         private double stallTorqueNM;
 
-        MotorConstants(double freeSpeedRPM, double freeCurrentAmps, double stallCurrentAmps, double stallTorqueNM){
+        MotorType(double freeSpeedRPM, double freeCurrentAmps, double stallCurrentAmps, double stallTorqueNM){
             this.freeSpeedRPM = freeSpeedRPM;
             this.freeCurrentAmps = freeCurrentAmps;
             this.stallCurrentAmps = stallCurrentAmps;
@@ -50,14 +50,6 @@ public abstract class NAR_Motor<T extends SpeedController> extends Simulable {
         TALON_FX, TALON_SRX, VICTOR_SPX;
     }
 
-    protected int deviceNumber;
-    protected T motorController;
-    protected SimDevice encoderSim;
-    protected SimDouble simPos;
-    protected SimDouble simVel;
-
-    
-
     protected NAR_Motor(int deviceNumber) {
         this.deviceNumber = deviceNumber;
         construct();
@@ -83,29 +75,88 @@ public abstract class NAR_Motor<T extends SpeedController> extends Simulable {
         return result;
     }
 
-    // Need clarification on how to use this
+    // Have to be defined higher up
+    protected double encoderRes;
+    protected double moi;
+
+    protected MotorType type;
+    protected int deviceNumber;
+    protected T motorController;
+    protected SimDevice simEncoder;
+    protected SimDouble simPos;
+    protected SimDouble simVel;
+    protected SimDouble simLoad;
+
+    /**
+     * Simulates physics for an individual motor assuming perfect conditions
+     */
     @Override
     public void updateSimulation(double timeStep) {
-        
+        double position = simPos.get();
+        double velocity = simVel.get();
+
+        velocity+=getSimAcc()*timeStep;
+
+        simVel.set(velocity);
+        simPos.set(position+velocity*timeStep);
     }
 
-    // Probably how this should be implemented
     @Override
     public void constructFake(){
-        encoderSim = SimDevice.create("Encoder ["+deviceNumber+"]", deviceNumber);
-        simPos = encoderSim.createDouble("Pos", Direction.kBidir, 0);
-        simVel = encoderSim.createDouble("Vel", Direction.kBidir, 0);
+        simEncoder = SimDevice.create(motorController.getClass().getSimpleName()+"["+deviceNumber+"] simEncoder", deviceNumber);
+        simPos = simEncoder.createDouble("Pos", Direction.kBidir, 0);
+        simVel = simEncoder.createDouble("Vel", Direction.kBidir, 0);
+        simLoad = simEncoder.createDouble("Load", Direction.kBidir, 0);
     }
 
-    public abstract void set(double value);
     /**
-     * Set control with lazy logic
-     * @param controlMode
-     * @param value
+     * @return Position in native units
      */
-    public abstract void set(ControlMode controlMode, double value);
+    public double getSimPos(){
+        return simPos.get();
+    }
 
-    public abstract double getSetpoint();
+    /**
+     * @return Velocity in native units / second
+     */
+    public double getSimVel(){
+
+        // freeSpeed in native units / second
+        double freeSpeed = (type.getFreeSpeedRPM() * encoderRes / 60);
+
+        if(simVel.get() < freeSpeed)
+            return simVel.get();
+        else
+            return freeSpeed;
+    }
+
+    /**
+     * @return Acceleration in native units / second squared
+     */
+    public double getSimAcc(){
+        return getSimTorque() / moi;
+    }
+
+    /**
+     * @return Net torque in N*m
+     */
+    public double getSimTorque(){
+
+        double appTorq = type.getStallTorqueNM()*motorController.get();
+
+        appTorq *= 1 - Math.abs(getSimVel()) / (type.getFreeSpeedRPM() * encoderRes / 60);
+
+        return appTorq - simLoad.get();
+    }
+
+    /**
+     * IMPLEMENT WITH CAUTION, this may require knowledge of more complete motor state
+     * 
+     * @param load simulated load in N*m
+     */
+    public void setSimLoad(double load){
+        simLoad.set(load);
+    }
 
     public void stop() {
         motorController.stopMotor();
@@ -116,6 +167,17 @@ public abstract class NAR_Motor<T extends SpeedController> extends Simulable {
     } 
 
     public SimDevice getFakeMotor(){
-        return encoderSim;
+        return simEncoder;
     }
+
+    public abstract void set(double value);
+    public abstract void set(ControlMode controlMode, double value);
+    public static enum NAR_NeutralMode{
+        BRAKE, COAST;
+    }
+    public abstract void setNeutralMode(NAR_NeutralMode mode);
+    public abstract double getSetpoint();
+    public abstract double getEncoderPosition();
+    public abstract double getEncoderVelocity();
+    public abstract void setEncoderPosition(double pos);
 }

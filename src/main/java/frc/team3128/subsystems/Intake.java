@@ -3,12 +3,15 @@ package frc.team3128.subsystems;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.TalonSRXSimCollection;
 import com.ctre.phoenix.motorcontrol.VictorSPXSimCollection;
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import frc.team3128.Robot;
+import frc.team3128.hardware.NAR_Motor;
 import frc.team3128.hardware.NAR_TalonSRX;
 import frc.team3128.hardware.NAR_VictorSPX;
+import frc.team3128.hardware.NAR_Motor.MotorControllerType;
 
 
 public class Intake implements Subsystem {
@@ -20,14 +23,7 @@ public class Intake implements Subsystem {
     private static Intake instance;
 
     //motors
-    private NAR_TalonSRX m_arm_motor;
-    private NAR_VictorSPX m_brush_motor_1, m_brush_motor_2, m_intake_motor;
-
-    //simulated motors
-    private TalonSRXSimCollection m_arm_motorSim;
-    private VictorSPXSimCollection m_brush_motor_1Sim;
-    private VictorSPXSimCollection m_brush_motor_2Sim;
-    private VictorSPXSimCollection m_intake_motorSim;
+    private NAR_Motor m_arm_motor, m_brush_motor_1, m_brush_motor_2, m_intake_motor;
 
     private DigitalInput m_limitSwitchTop, m_limitSwitchBottom;
 
@@ -48,25 +44,14 @@ public class Intake implements Subsystem {
     }
 
     private void configMotors() {
-        m_arm_motor = new NAR_TalonSRX(Constants.IntakeConstants.ARM_MOTOR_ID);
-        m_brush_motor_1 = new NAR_VictorSPX(Constants.IntakeConstants.BRUSH_MOTOR_1_ID);
-        m_brush_motor_2 = new NAR_VictorSPX(Constants.IntakeConstants.BRUSH_MOTOR_2_ID);
-        m_intake_motor = new NAR_VictorSPX(Constants.IntakeConstants.INTAKE_MOTOR_ID);
+        m_arm_motor = NAR_Motor.create(Constants.IntakeConstants.ARM_MOTOR_ID, MotorControllerType.TALON_SRX);
+        m_brush_motor_1 = NAR_Motor.create(Constants.IntakeConstants.ARM_MOTOR_ID, MotorControllerType.VICTOR_SPX);
+        m_brush_motor_2 = NAR_Motor.create(Constants.IntakeConstants.BRUSH_MOTOR_2_ID, MotorControllerType.VICTOR_SPX);
+        m_intake_motor = NAR_Motor.create(Constants.IntakeConstants.INTAKE_MOTOR_ID, MotorControllerType.VICTOR_SPX);
 
+        // TODO: What 
         m_arm_motor.setNeutralMode(Constants.IntakeConstants.ARM_NEUTRAL_MODE);
         m_brush_motor_2.set(ControlMode.Follower, Constants.IntakeConstants.BRUSH_MOTOR_1_ID);
-
-        if (!Robot.isReal()){
-            configMotorsSim();
-        }
-    }
-
-
-    private void configMotorsSim() {
-        m_arm_motorSim = new TalonSRXSimCollection(m_arm_motor);
-        m_brush_motor_1Sim = new VictorSPXSimCollection(m_brush_motor_1);
-        m_brush_motor_2Sim = new VictorSPXSimCollection(m_brush_motor_2);
-        m_intake_motorSim = new VictorSPXSimCollection(m_intake_motor);
     }
 
     
