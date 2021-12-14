@@ -60,18 +60,10 @@ public class NAR_Drivetrain extends SubsystemBase implements Simulable{
     @Override
     public void constructReal() {
         // TODO: Initialize motors here from parameters
-        leftLeader = (NAR_TalonFX) NAR_MotorController.create(Constants.DriveConstants.DRIVE_MOTOR_LEFT_LEADER_ID, 
-                                                                MotorControllerType.TALON_FX,
-                                                                MotorConstants.Vex775Pro);
-        rightLeader = (NAR_TalonFX) NAR_MotorController.create(Constants.DriveConstants.DRIVE_MOTOR_RIGHT_LEADER_ID,
-                                                                MotorControllerType.TALON_FX,
-                                                                MotorConstants.Vex775Pro);
-        leftFollower = (NAR_TalonFX) NAR_MotorController.create(Constants.DriveConstants.DRIVE_MOTOR_LEFT_FOLLOWER_ID, 
-                                                                MotorControllerType.TALON_FX,
-                                                                MotorConstants.Vex775Pro);
-        rightFollower = (NAR_TalonFX) NAR_MotorController.create(Constants.DriveConstants.DRIVE_MOTOR_RIGHT_FOLLOWER_ID, 
-                                                                MotorControllerType.TALON_FX,
-                                                                MotorConstants.Vex775Pro);
+        leftLeader = NAR_MotorController.createTalonFX(Constants.DriveConstants.DRIVE_MOTOR_RIGHT_LEADER_ID);
+        rightLeader = NAR_MotorController.createTalonFX(Constants.DriveConstants.DRIVE_MOTOR_RIGHT_LEADER_ID);
+        leftFollower = NAR_MotorController.createTalonFX(Constants.DriveConstants.DRIVE_MOTOR_LEFT_FOLLOWER_ID);
+        rightFollower = NAR_MotorController.createTalonFX(Constants.DriveConstants.DRIVE_MOTOR_RIGHT_FOLLOWER_ID);
 
         leftFollower.follow(leftLeader);
         //leftFollower.setInverted(InvertType.FollowMaster);

@@ -8,15 +8,15 @@ import edu.wpi.first.wpilibj.SpeedController;
 import frc.team3128.common.Simulable;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
-
-import edu.wpi.first.wpilibj.SpeedController;
+import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 public abstract class NAR_MotorController<T extends SpeedController> implements Simulable {
 
     // Condensed the contant-storing functionality of this class to an enum
     public static enum MotorConstants{
 
-        Vex775Pro(18730, 0.7, 134, 0.71);
+        Vex775Pro(18730, 0.7, 134, 0.71),
+        Falcon500(6380, 1.5, 257, 4.69);
 
         private double freeSpeedRPM;
         private double freeCurrentAmps;
@@ -61,20 +61,34 @@ public abstract class NAR_MotorController<T extends SpeedController> implements 
         switch(motorType) {
             case TALON_FX:
                 result = new NAR_TalonFX(deviceNumber);
+                result.setMotorType(MotorConstants.Falcon500);
                 break;
             case TALON_SRX:
                 result =  new NAR_TalonSRX(deviceNumber);
+                result.setMotorType(physConstants);
                 break;
             case VICTOR_SPX:
                 result = new NAR_VictorSPX(deviceNumber);
+                result.setMotorType(physConstants);
                 break;
             default:
                 return null;
         }
 
-        result.construct();
-        result.setMotorType(physConstants);
+        //result.construct();
         return result;
+    }
+
+    public static NAR_TalonFX createTalonFX(int deviceNumber){
+        return (NAR_TalonFX) create(deviceNumber, MotorControllerType.TALON_FX, MotorConstants.Falcon500);
+    }
+
+    public static NAR_TalonSRX createTalonSRX(int deviceNumber, MotorConstants physConstants){
+        return (NAR_TalonSRX) create(deviceNumber, MotorControllerType.TALON_SRX, physConstants);
+    }
+
+    public static NAR_VictorSPX createVictorSPX(int deviceNumber, MotorConstants physConstants){
+        return (NAR_VictorSPX) create(deviceNumber, MotorControllerType.VICTOR_SPX, physConstants);
     }
 
     // Have to be defined higher up

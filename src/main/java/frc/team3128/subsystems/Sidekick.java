@@ -13,12 +13,13 @@ import edu.wpi.first.wpilibj.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.system.plant.LinearSystemId;
 import frc.team3128.Robot;
 import frc.team3128.common.NAR_PIDSubsystem;
+import frc.team3128.common.Simulable;
 import frc.team3128.hardware.NAR_MotorController;
 import frc.team3128.hardware.NAR_TalonSRX;
 import frc.team3128.hardware.NAR_MotorController.MotorConstants;
 import frc.team3128.hardware.NAR_MotorController.MotorControllerType;
 
-public class Sidekick extends NAR_PIDSubsystem {
+public class Sidekick extends NAR_PIDSubsystem implements Simulable{
 
     public static enum SidekickState { // enum for the setpoint shooting state
         OFF(0),
@@ -81,9 +82,7 @@ public class Sidekick extends NAR_PIDSubsystem {
      * Configures the motors (regular+simulation) 
      */
     private void configMotors() {
-        m_sidekick = (NAR_TalonSRX) NAR_MotorController.create(Constants.SidekickConstants.SIDEKICK_ID,
-                                                        MotorControllerType.TALON_SRX,
-                                                        MotorConstants.Vex775Pro);
+        m_sidekick = NAR_MotorController.createTalonSRX(Constants.SidekickConstants.SIDEKICK_ID, MotorConstants.Vex775Pro);
         // m_sidekick.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0,
         //         Constants.SidekickConstants.CAN_TIMEOUT);
         // m_sidekick.setInverted(true);
@@ -183,5 +182,23 @@ public class Sidekick extends NAR_PIDSubsystem {
 
         SmartDashboard.putNumber("Speed", m_sidekick.getEncoderVelocity());
         SmartDashboard.putNumber("Expected Speed", m_sidekickShooterSim.getAngularVelocityRadPerSec());
+    }
+
+    @Override
+    public void constructReal() {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void constructFake() {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void updateSimulation(double timeStep) {
+        // TODO Auto-generated method stub
+        
     }
 }

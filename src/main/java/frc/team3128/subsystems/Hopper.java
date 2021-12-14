@@ -58,16 +58,14 @@ public class Hopper implements Subsystem, Simulable {
 
     @Override
     public void simulationPeriodic() {
-
+        updateSimulation(0.02);
     }
 
     @Override
     public void constructReal() {
         m_bottomSensor = new NAR_DigitalInput(Constants.HopperConstants.BOTTOM_SENSOR_ID);
         m_topSensor = new NAR_DigitalInput(Constants.HopperConstants.TOP_SENSOR_ID);
-        m_hopper_1 = (NAR_TalonSRX) NAR_MotorController.create(Constants.HopperConstants.HOPPER_MOTOR_1_ID, 
-                                                    MotorControllerType.TALON_SRX,
-                                                    MotorConstants.Vex775Pro);
+        m_hopper_1 = NAR_MotorController.createTalonSRX(Constants.HopperConstants.HOPPER_MOTOR_1_ID, MotorConstants.Vex775Pro);
         m_hopper_2 = new NAR_CANSparkMax(Constants.HopperConstants.HOPPER_MOTOR_2_ID, MotorType.kBrushless);
     }
 

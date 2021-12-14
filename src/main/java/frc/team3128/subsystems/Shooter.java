@@ -15,11 +15,12 @@ import edu.wpi.first.wpilibj.system.plant.LinearSystemId;
 import frc.team3128.Robot;
 import frc.team3128.common.NAR_EMotor;
 import frc.team3128.common.NAR_PIDSubsystem;
+import frc.team3128.common.Simulable;
 import frc.team3128.hardware.*;
 import frc.team3128.hardware.NAR_MotorController.MotorConstants;
 import frc.team3128.hardware.NAR_MotorController.MotorControllerType;
 
-public class Shooter extends NAR_PIDSubsystem {
+public class Shooter extends NAR_PIDSubsystem implements Simulable{
 
     /**
      * Different possible RPM setpoints
@@ -44,12 +45,8 @@ public class Shooter extends NAR_PIDSubsystem {
     private static Shooter instance;
 
     //Motors
-    private NAR_TalonFX m_leftShooter = (NAR_TalonFX) NAR_MotorController.create(Constants.ShooterConstants.LEFT_SHOOTER_ID, 
-                                                                                MotorControllerType.TALON_FX,
-                                                                                MotorConstants.Vex775Pro);
-    private NAR_TalonFX m_rightShooter = (NAR_TalonFX) NAR_MotorController.create(Constants.ShooterConstants.RIGHT_SHOOTER_ID, 
-                                                                                MotorControllerType.TALON_FX,
-                                                                                MotorConstants.Vex775Pro);
+    private NAR_TalonFX m_leftShooter;
+    private NAR_TalonFX m_rightShooter;
 
     //Simulated Shooter
     private FlywheelSim m_shooterSim;
@@ -186,6 +183,24 @@ public class Shooter extends NAR_PIDSubsystem {
 
         SmartDashboard.putNumber("Expected Shooter Speed (rpm)", m_shooterSim.getAngularVelocityRadPerSec()); //* 60 / (2*Math.PI) );
         SmartDashboard.putString("pogger", String.valueOf(m_shooterSim.getAngularVelocityRadPerSec()));
+    }
+
+    @Override
+    public void constructReal() {
+        m_leftShooter = NAR_MotorController.createTalonFX(Constants.ShooterConstants.LEFT_SHOOTER_ID);
+        m_rightShooter = NAR_MotorController.createTalonFX(Constants.ShooterConstants.RIGHT_SHOOTER_ID);
+    }
+
+    @Override
+    public void constructFake() {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void updateSimulation(double timeStep) {
+        // TODO Auto-generated method stub
+        
     }
     
 }

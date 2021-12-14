@@ -46,18 +46,10 @@ public class Intake implements Subsystem {
     }
 
     private void configMotors() {
-        m_arm_motor = (NAR_TalonSRX) NAR_MotorController.create(Constants.IntakeConstants.ARM_MOTOR_ID, 
-                                                        MotorControllerType.TALON_SRX,
-                                                        MotorConstants.Vex775Pro);
-        m_brush_motor_1 = (NAR_VictorSPX) NAR_MotorController.create(Constants.IntakeConstants.ARM_MOTOR_ID, 
-                                                        MotorControllerType.VICTOR_SPX,
-                                                        MotorConstants.Vex775Pro);
-        m_brush_motor_2 = (NAR_VictorSPX) NAR_MotorController.create(Constants.IntakeConstants.BRUSH_MOTOR_2_ID, 
-                                                        MotorControllerType.VICTOR_SPX,
-                                                        MotorConstants.Vex775Pro);
-        m_intake_motor = (NAR_VictorSPX) NAR_MotorController.create(Constants.IntakeConstants.INTAKE_MOTOR_ID, 
-                                                        MotorControllerType.VICTOR_SPX,
-                                                        MotorConstants.Vex775Pro);
+        m_arm_motor = NAR_MotorController.createTalonSRX(Constants.IntakeConstants.ARM_MOTOR_ID, MotorConstants.Vex775Pro);
+        m_brush_motor_1 = NAR_MotorController.createVictorSPX(Constants.IntakeConstants.BRUSH_MOTOR_1_ID, MotorConstants.Vex775Pro);
+        m_brush_motor_2 = NAR_MotorController.createVictorSPX(Constants.IntakeConstants.BRUSH_MOTOR_2_ID, MotorConstants.Vex775Pro);
+        m_intake_motor = NAR_MotorController.createVictorSPX(Constants.IntakeConstants.INTAKE_MOTOR_ID, MotorConstants.Vex775Pro);
 
         // TODO: What 
         m_arm_motor.setNeutralMode(Constants.IntakeConstants.ARM_NEUTRAL_MODE);
