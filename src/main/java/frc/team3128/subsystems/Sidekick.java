@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj.simulation.FlywheelSim;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.system.plant.LinearSystemId;
+import frc.team3128.Constants;
 import frc.team3128.Robot;
 import frc.team3128.common.NAR_PIDSubsystem;
 import frc.team3128.common.hardware.motor.NAR_TalonSRX;

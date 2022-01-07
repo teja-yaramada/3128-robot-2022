@@ -4,7 +4,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import frc.team3128.subsystems.Constants;
+import frc.team3128.Constants;
 import frc.team3128.subsystems.NAR_Drivetrain;
 
 public class ArcadeDrive extends CommandBase {

@@ -1,4 +1,4 @@
-package frc.team3128.subsystems;
+package frc.team3128;
 
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 
@@ -73,7 +73,6 @@ public class Constants {
 
     public static class DriveConstants {
 
-
         // Sim constants, TODO: move to new class
         public static final DCMotor GEARBOX = DCMotor.getFalcon500(4); 
         public static final LinearSystem<N2, N2, N2> DRIVE_CHAR = 
@@ -84,7 +83,6 @@ public class Constants {
             0.5//0.3 // kaVoltSecondsSquaredPerRadian
         );
         public static final double DRIVE_GEARING = 8;
-        public static final double WHEEL_RADIUS_METERS = 0.0508;
 
         public static final int DRIVE_MOTOR_LEFT_LEADER_ID = 0;
         public static final int DRIVE_MOTOR_LEFT_FOLLOWER_ID = 1;
@@ -99,22 +97,24 @@ public class Constants {
         public static final double MAX_DRIVE_ACCELERATION = 1.5; // m/s^2
 
         public static final int WHEEL_RADIUS = 2; // inches
+        public static final double WHEEL_RADIUS_METERS = 0.0508; // meters
         public static final double TRACK_WIDTH = 0.66; // meters
         public static final DifferentialDriveKinematics DRIVE_KINEMATICS = new DifferentialDriveKinematics(TRACK_WIDTH);
 
-        public static final double ENCODER_RESOLUTION_PER_ROTATION = 2048;
-        public static final double ENCODER_DISTANCE_PER_MARK = WHEEL_RADIUS * 2 * Math.PI / ENCODER_RESOLUTION_PER_ROTATION;
+        public static final double DRIVE_ENCODER_RESOLUTION = 2048;
+        public static final double ENCODER_DISTANCE_PER_MARK = WHEEL_RADIUS_METERS * 2 * Math.PI / DRIVE_ENCODER_RESOLUTION; // meters per encoder tick
+        public static final double DRIVE_DIST_PER_TICK = ENCODER_DISTANCE_PER_MARK / DRIVE_GEARING; // meters per encoder tick
 
         public static final double ARCADE_DRIVE_TURN_MULT = -0.6; //-0.7
 
-        public static final double kS = 0.8; // 0.73; // volts
-        public static final double kV = 0.5; // 0.571; // volt*seconds/meter
-        public static final double kA = 0.05; // 0.013; // volt*seconds^2/meter
+        public static final double kS = 0.73; // volts
+        public static final double kV = 0.0571; // volt*seconds/meter
+        public static final double kA = 0.013; // volt*seconds^2/meter
 
-        public static final double MAX_DRIVE_VOLTAGE = 11; // volts (hopefully you could figure this out)
+        public static final double MAX_DRIVE_VOLTAGE = 7; // volts (hopefully you could figure this out)
         public static final double RAMSETE_B = 2;
         public static final double RAMSETE_ZETA = 0.7;
-        public static final double RAMSETE_KP = 0.5; // I think Tyler just took this number and ran with it
+        public static final double RAMSETE_KP = 0.5; // 0.5; // I think Tyler just took this number and ran with it
 
     }
 

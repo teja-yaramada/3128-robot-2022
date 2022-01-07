@@ -1,6 +1,7 @@
 package frc.team3128.subsystems;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.team3128.Constants;
 import frc.team3128.common.hardware.motor.NAR_TalonSRX;
 
 public class Climber extends SubsystemBase {

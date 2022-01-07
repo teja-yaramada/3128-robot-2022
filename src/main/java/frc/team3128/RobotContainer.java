@@ -45,7 +45,7 @@ public class RobotContainer {
     private Command trajectory;
 
     private Command runIntake, stopIntake;
-    private Command alignShoot, stopAlignShoot;
+    private Command shoot, align, alignShoot, stopAlignShoot;
     private Command armDown, armUp, stopArm;
     private Command climberDown, climberUp, stopClimber;
 
@@ -89,6 +89,9 @@ public class RobotContainer {
         // right button 2: shoot
         m_rightStick.getButton(2).whenPressed(alignShoot)
                                 .whenReleased(stopAlignShoot);
+
+        m_rightStick.getButton(7).whenPressed(m_drive::resetGyro);
+
         // right button 9: move arm down
         m_rightStick.getButton(9).whenPressed(armDown)
                                 .whenReleased(stopArm);
@@ -98,6 +101,10 @@ public class RobotContainer {
 
         // left trigger: reverse drive
         m_leftStick.getButton(1).whenPressed(() -> driveInverted = !driveInverted);
+
+        // shoot no align
+        m_leftStick.getButton(2).whenPressed(shoot)
+                                .whenReleased(new RunCommand(m_shooter::stopShoot, m_shooter));
 
         // left button 7: move climber up
         m_leftStick.getButton(7).whenPressed(climberUp)
@@ -144,8 +151,10 @@ public class RobotContainer {
     private void initAutos() {
         runIntake = new RunCommand(m_intake::runIntake, m_intake);
         stopIntake = new RunCommand(m_intake::stopIntake, m_intake);
-        
-        alignShoot = new ParallelCommandGroup(new CmdShoot(m_shooter, m_sidekick, ShooterState.MID_RANGE), new CmdAlign(m_drive, shooterLimelight));
+
+        shoot = new CmdShoot(m_shooter, m_sidekick, ShooterState.MID_RANGE);
+        align = new CmdAlign(m_drive, shooterLimelight);
+        alignShoot = new ParallelCommandGroup(shoot, align);
         stopAlignShoot = new ParallelCommandGroup(new RunCommand(m_shooter::stopShoot, m_shooter), new InstantCommand(shooterLimelight::turnLEDOff));
 
         armDown = new RunCommand(m_intake::moveArmDown, m_intake);
@@ -168,8 +177,7 @@ public class RobotContainer {
                                         new PIDController(Constants.DriveConstants.RAMSETE_KP, 0, 0),
                                         m_drive::tankDriveVolts,
                                         m_drive)
-                                        .andThen(() -> m_drive.stop(), m_drive)
-                                        .andThen(() -> SmartDashboard.putNumber("End auto heading", m_drive.getHeading()));
+                                        .andThen(() -> m_drive.stop(), m_drive);
 
         auto = new AutoSimple(m_shooter, m_sidekick, m_drive, shooterLimelight, m_intake, trajectory);
     }
@@ -183,8 +191,7 @@ public class RobotContainer {
     }
 
     public Command getAutonomousCommand() {
+        m_drive.resetPose(Trajectories.trajectorySimple.getInitialPose()); // change this if the trajectory being run changes
         return auto;
     }
-
-
 }
