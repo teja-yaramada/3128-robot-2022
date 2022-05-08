@@ -5,12 +5,14 @@ import java.nio.file.Path;
 import java.util.HashMap;
 
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.RamseteController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrajectoryUtil;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
@@ -27,7 +29,9 @@ import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.RamseteCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
 import frc.team3128.Constants.HoodConstants;
+import frc.team3128.Constants.SwerveConstants;
 import frc.team3128.ConstantsInt.ClimberConstants;
 import frc.team3128.ConstantsInt.VisionConstants;
 import frc.team3128.autonomous.Trajectories;
@@ -46,6 +50,7 @@ import frc.team3128.commands.CmdRetractHopper;
 import frc.team3128.commands.CmdShootDist;
 import frc.team3128.commands.CmdShootRPM;
 import frc.team3128.commands.CmdShootSingleBall;
+import frc.team3128.commands.SwerveArcadeDriveCmd;
 import frc.team3128.common.hardware.input.NAR_Joystick;
 import frc.team3128.common.hardware.limelight.Limelight;
 import frc.team3128.common.hardware.limelight.LimelightKey;
@@ -57,7 +62,9 @@ import frc.team3128.subsystems.Hopper;
 import frc.team3128.subsystems.Intake;
 import frc.team3128.subsystems.NAR_Drivetrain;
 import frc.team3128.subsystems.Shooter;
+import frc.team3128.subsystems.SwerveSubsystem;
 import frc.team3128.subsystems.Shooter.ShooterState;
+import static frc.team3128.Constants.SwerveConstants.*;
 
 /**
  * This class is where the bulk of the robot should be declared. Since
@@ -68,6 +75,7 @@ import frc.team3128.subsystems.Shooter.ShooterState;
  */
 public class RobotContainer {
     private NAR_Drivetrain m_drive;
+    private SwerveSubsystem m_swerve;
     private Shooter m_shooter;
     private Intake m_intake;   
     private Hopper m_hopper;
@@ -135,6 +143,7 @@ public class RobotContainer {
     public RobotContainer() {
         ConstantsInt.initTempConstants();
         m_drive = NAR_Drivetrain.getInstance();
+        m_swerve = SwerveSubsystem.getInstance();
         m_shooter = Shooter.getInstance();
         m_intake = Intake.getInstance();
         m_hopper = Hopper.getInstance();
@@ -155,7 +164,14 @@ public class RobotContainer {
                                                         VisionConstants.BALL_LL_HEIGHT, 
                                                         VisionConstants.BALL_LL_FRONT_DIST, 0);
 
-        m_commandScheduler.setDefaultCommand(m_drive, new CmdArcadeDrive(m_drive, m_rightStick::getY, m_rightStick::getTwist, m_rightStick::getThrottle, () -> driveHalfSpeed));
+        //m_commandScheduler.setDefaultCommand(m_drive, new CmdArcadeDrive(m_drive, m_rightStick::getY, m_rightStick::getTwist, m_rightStick::getThrottle, () -> driveHalfSpeed));
+        m_commandScheduler.setDefaultCommand(m_drive, 
+            new SwerveArcadeDriveCmd(
+                m_swerve, 
+                m_rightStick::getX, 
+                m_rightStick::getY, 
+                m_rightStick::getTwist, 
+                m_rightStick::getThrottle));
         //m_commandScheduler.setDefaultCommand(m_hopper, new CmdHopperDefault(m_hopper, m_shooter::isReady)); //TODO: make input into this good method ???
 
         initAutos();
@@ -781,6 +797,25 @@ public class RobotContainer {
                             m_drive);
     }
 
+    private SwerveControllerCommand swerveTrajectoryCmd(Trajectory traj){
+        
+        PIDController xController = new PIDController(SwerveConstants.AUTO_KP, SwerveConstants.AUTO_KI, SwerveConstants.AUTO_KD);
+        PIDController yController = new PIDController(SwerveConstants.AUTO_KP, SwerveConstants.AUTO_KI, SwerveConstants.AUTO_KD);
+        ProfiledPIDController thetaController = new ProfiledPIDController(SwerveConstants.AUTO_KP, SwerveConstants.AUTO_KI, SwerveConstants.AUTO_KD,
+        
+        new TrapezoidProfile.Constraints(SwerveConstants.kMaxAngularSpeed, SwerveConstants.kModuleMaxAngularAcceleration));
+        thetaController.enableContinuousInput(-Math.PI, Math.PI);
+        
+        return new SwerveControllerCommand(traj,                     //desired trajecotry
+                            m_drive::getPose,                        //current pose of robot
+                            SwerveConstants.kSwerveDriveKinematics,  //robot kinematics
+                            xController,                             //PID for x movement
+                            yController,                             //PID for y movement
+                            thetaController,                         //profiled PID for z rotation
+                            m_swerve::setModuleStates,               //individual module actions
+                            m_swerve);                               //subsystem
+    }
+
     private SequentialCommandGroup shootCmd() {
         return new SequentialCommandGroup(
             new CmdRetractHopper(m_hopper).withTimeout(0.5),
@@ -875,6 +910,7 @@ public class RobotContainer {
 
     public void stopDrivetrain() {
         m_drive.stop();
+        m_swerve.stop();
     }
   
     private void initLimelights(Limelight... limelightList) {

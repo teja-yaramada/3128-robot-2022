@@ -9,7 +9,9 @@ import frc.team3128.common.utility.interpolation.InterpolatingTreeMap;
 
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
+import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N2;
 
@@ -24,6 +26,34 @@ public class Constants {
         public static final double SPARK_VELOCITY_FACTOR = SPARK_ENCODER_RESOLUTION / 60; // RPM to nu/s
         public static final double FALCON_NUp100MS_TO_RPM = 10 * 60 / FALCON_ENCODER_RESOLUTION; // sensor units per 100 ms to rpm
         public static final double FALCON_NUpS_TO_RPM = 60 / FALCON_ENCODER_RESOLUTION; // sensor units per second to rpm
+    }
+
+    public static final class ModuleConstants {
+
+        public static final double kWheelDiameterMeters = 0;
+        public static final double kDriveMotorGearRatio = 0;
+        public static final double kTurningMotorGearRatio = 0;
+        public static final double kDriveEncoderRot2Meter = kDriveMotorGearRatio * kWheelDiameterMeters * Math.PI;
+        public static final double kTurningEncoderRot2Rad = kTurningMotorGearRatio * Math.PI * 2;
+        public static final double kDriveEncoderRPM2MetersPerSec = kDriveEncoderRot2Meter / 60;
+        public static final double kTurningEncoderRPM2RadPerSec = kTurningEncoderRot2Rad / 60;
+        public static final double kPTurning = 0;
+        public static final double kITurning = 0;
+        public static final double kDTurning = 0;
+
+    }
+
+    public static final class SwerveConstants {
+        public static final double kMaxAngularSpeed = Math.PI; // 1/2 rotation per second
+        public static final double kModuleMaxAngularAcceleration = 2 * Math.PI; // radians per second squared
+        public static final double  AUTO_KP = 0.5;
+        public static final double AUTO_KI = 0.0;
+        public static final double AUTO_KD = 0.0;
+        public static final SwerveDriveKinematics kDriveKinematics = ;
+    }
+
+    public static class OIConstants {
+        public static final double kDeadband = 0.0;
     }
 
     public static class DriveConstants {
@@ -62,6 +92,61 @@ public class Constants {
         public static final double TURN_kF = 0.1;
 
         public static final double TURN_TOLERANCE = 12; // deg
+
+
+
+        public static final double kTrackWidth = 0;
+        public static final double kWheelBase = 0;
+        public static final SwerveDriveKinematics kDriveKinematics = new SwerveDriveKinematics(
+                new Translation2d(kWheelBase / 2, -kTrackWidth / 2),
+                new Translation2d(kWheelBase / 2, kTrackWidth / 2),
+                new Translation2d(-kWheelBase / 2, -kTrackWidth / 2),
+                new Translation2d(-kWheelBase / 2, kTrackWidth / 2));
+
+        public static final int kFrontLeftDriveMotorPort = 0;
+        public static final int kFrontRightDriveMotorPort = 0;
+        public static final int kBackLeftDriveMotorPort = 0;
+        public static final int kBackRightDriveMotorPort = 0;
+
+        public static final int kFrontLeftTurningMotorPort = 0;
+        public static final int kFrontRightTurningMotorPort = 0;
+        public static final int kBackLeftTurningMotorPort = 0;
+        public static final int kBackRightTurningMotorPort = 0;
+        
+        public static final boolean kFrontLeftDriveEncoderReversed = true;
+        public static final boolean kFrontRightDriveEncoderReversed = true;
+        public static final boolean kBackLeftDriveEncoderReversed = true;
+        public static final boolean kBackRightDriveEncoderReversed = true;
+
+        public static final boolean kFrontLeftTurningEncoderReversed = true;
+        public static final boolean kFrontRightTurningEncoderReversed = true;
+        public static final boolean kBackLeftTurningEncoderReversed = true;
+        public static final boolean kBackRightTurningEncoderReversed = true;
+
+        public static final int kFrontLeftDriveAbsoluteEncoderPort = 0;
+        public static final int kFrontRightDriveAbsoluteEncoderPort = 0;
+        public static final int kBackLeftDriveAbsoluteEncoderPort = 0;
+        public static final int kBackRightDriveAbsoluteEncoderPort = 0;
+
+        public static final double kFrontLeftDriveAbsoluteEncoderOffsetRad = 0.0;
+        public static final double kFrontRightDriveAbsoluteEncoderOffsetRad = 0.0;
+        public static final double kBackLeftDriveAbsoluteEncoderOffsetRad = 0.0;
+        public static final double kBackRightDriveAbsoluteEncoderOffsetRad = 0.0;
+
+        public static final boolean kFrontLeftDriveAbsoluteEncoderReversed = false;
+        public static final boolean kFrontRightDriveAbsoluteEncoderReversed = false;
+        public static final boolean kBackLeftDriveAbsoluteEncoderReversed = false;
+        public static final boolean kBackRightDriveAbsoluteEncoderReversed = false;
+
+
+        public static final double kPhysicalMaxSpeedMetersPerSecond = 5.0;
+
+        public static final double kTeleDriveMaxAccUnitsPerSec = 0.0;
+        public static final double kTeleDriveMaxVelocityMetersPerSec = 0.0;
+        public static final double kTeleDriveMaxAngularAccUnitsPerSec = 0.0;
+        public static final double kTeleMaxDriveVelocityRadiansPerSec = 0.0;
+
+
 
         //Ramsete constants
         public static final double RAMSETE_B = 2; //default value - don't change unless absolutely necessary
