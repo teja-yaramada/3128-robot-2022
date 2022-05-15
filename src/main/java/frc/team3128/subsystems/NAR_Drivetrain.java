@@ -6,6 +6,7 @@ import com.kauailabs.navx.frc.AHRS;
 
 import edu.wpi.first.hal.SimDouble;
 import edu.wpi.first.hal.simulation.SimDeviceDataJNI;
+import edu.wpi.first.math.estimator.DifferentialDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
@@ -22,6 +23,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.team3128.Constants.DriveConstants;
 import frc.team3128.common.hardware.motorcontroller.NAR_TalonFX;
 import frc.team3128.common.infrastructure.NAR_EMotor;
+import frc.team3128.commands.CmdVisionPoseEstimation;
 
 public class NAR_Drivetrain extends SubsystemBase {
 
@@ -46,7 +48,7 @@ public class NAR_Drivetrain extends SubsystemBase {
 
     private DifferentialDrive robotDrive;
     private DifferentialDrivetrainSim robotDriveSim;
-    private DifferentialDriveOdometry odometry;
+    private DifferentialDrivePoseEstimator odometry;
 
     private static AHRS gyro = new AHRS(SPI.Port.kMXP);;
 
@@ -95,7 +97,9 @@ public class NAR_Drivetrain extends SubsystemBase {
                 null/*VecBuilder.fill(0, 0, 0.0001, 0.1, 0.1, 0.005, 0.005)*/);
         }
 
-        odometry = new DifferentialDriveOdometry(Rotation2d.fromDegrees(getHeading()));
+        odometry = new DifferentialDrivePoseEstimator(Rotation2d.fromDegrees(getHeading()), new Pose2d(), DriveConstants.DT_STATE_STD, DriveConstants.DT_LOCAL_MEASUREMENT_STD, DriveConstants.DT_VISION_MEASUREMENT_STD);
+        field = new Field2d();
+
         field = new Field2d();
 
         resetEncoders();
@@ -110,7 +114,7 @@ public class NAR_Drivetrain extends SubsystemBase {
 
     @Override
     public void periodic() {
-        odometry.update(Rotation2d.fromDegrees(getHeading()), getLeftEncoderDistance(), getRightEncoderDistance());
+        odometry.update(Rotation2d.fromDegrees(getHeading()), getWheelSpeeds(), getLeftEncoderDistance(), getRightEncoderDistance());
         field.setRobotPose(getPose());   
         
         // SmartDashboard.putNumber("Left Encoder (meters)", getLeftEncoderDistance());
@@ -155,7 +159,7 @@ public class NAR_Drivetrain extends SubsystemBase {
     }
 
     public Pose2d getPose() {
-        return odometry.getPoseMeters();
+        return odometry.getEstimatedPosition();
     }
 
     public double getLeftEncoderDistance() {
@@ -245,12 +249,22 @@ public class NAR_Drivetrain extends SubsystemBase {
      */
     public void resetPose() {
         resetGyro();
-        resetPose(new Pose2d(0, 0, Rotation2d.fromDegrees(getHeading())));
+        resetPose(new Pose2d(0,0, Rotation2d.fromDegrees(getHeading())));
     }
 
     public void resetGyro() {
         gyro.reset();
     }
+    /*
+    * Add a vision measurement to the Kalman Filter
+    */
+   public void addVisionMeasurement(Pose2d visionRobotPoseMeters, double timeStampSeconds) {
+       resetEncoders();
+       odometry.addVisionMeasurement(visionRobotPoseMeters, timeStampSeconds);
+   }
 
+   public void getEstimatedPosition(){
+    CmdVisionPoseEstimation estimatedPose;
+   }
 }
 

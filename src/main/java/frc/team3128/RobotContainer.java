@@ -5,12 +5,14 @@ import java.nio.file.Path;
 import java.util.HashMap;
 
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.RamseteController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrajectoryUtil;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
@@ -27,6 +29,7 @@ import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.RamseteCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
 import frc.team3128.Constants.HoodConstants;
 import frc.team3128.ConstantsInt.ClimberConstants;
 import frc.team3128.ConstantsInt.VisionConstants;
@@ -102,7 +105,8 @@ public class RobotContainer {
         "S1H1_i.wpilib.json",
         "S1H1_ii.wpilib.json",
         "S1H2_ii.wpilib.json",
-        "S1H2_iii.wpilib.json"
+        "S1H2_iii.wpilib.json",
+        "TEST-SwerveLine.wpilib.json"
     };
 
     private HashMap<String, Trajectory> trajectoryMap = new HashMap<String, Trajectory>();
@@ -128,6 +132,7 @@ public class RobotContainer {
     private Command auto_S1H1;
     private Command auto_S1I1;
     private Command auto_S1H2;
+    private Command auto_SwerveLine;
 
     private boolean DEBUG = true;
     private boolean driveHalfSpeed = false;
@@ -746,7 +751,7 @@ public class RobotContainer {
             
         //     new CmdExtendIntake(m_intake),
         //     new CmdOuttake(m_intake, m_hopper, 0.5).withTimeout(2)
-        // );
+        // )
 
         // Setup auto-selector
         NarwhalDashboard.addAuto("1 Ball", auto_1Ball);
@@ -934,6 +939,7 @@ public class RobotContainer {
         initialPoses.put(auto_S1H1, trajectoryMap.get("S1H1_i.wpilib.json").getInitialPose());
         initialPoses.put(auto_S1I1, trajectoryMap.get("S1H1_i.wpilib.json").getInitialPose());
         initialPoses.put(auto_S1H2, trajectoryMap.get("S1H1_i.wpilib.json").getInitialPose());
+        initialPoses.put(auto_SwerveLine, trajectoryMap.get("TEST-SwerveLine.wpilib.json").getInitialPose());
 
         Command selectedAuto = NarwhalDashboard.getSelectedAuto();
 
